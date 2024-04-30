@@ -1,0 +1,28 @@
+{
+  "name": "unbreakable24",
+  "version": "1.0.0",
+  "description": "Unbreakable24 walking challenge",
+  "main": "index.js",
+  "repository": "https://github.com/stefiix92/unbreakable24",
+  "author": "Michal Štefanec <mrstefi92@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "start": "node dist/index.js",
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts"
+  },
+  "devDependencies": {
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.4.5"
+  },
+  "dependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/mongoose": "^5.11.97",
+    "@types/socket.io": "^3.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "mongoose": "^8.3.2",
+    "socket.io": "^4.7.5"
+  }
+}
