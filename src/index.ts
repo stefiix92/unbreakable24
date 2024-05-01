@@ -93,6 +93,15 @@ app.post('/start-session', validateApiKey, async(req, res) => {
     });
 });
 
+app.get('/get-session', validateApiKey, (req, res) => {
+    // Get the current session
+    Session.findOne().sort({ startTime: -1 }).then(session => {
+        res.status(200).send(session);
+    }).catch(err => {
+        console.log('Error:', err);
+    });
+});
+
 app.post('/end-session', validateApiKey, (req, res) => {
     // End the current session
     Session.findOne().sort({ startTime: -1 }).then(session => {
