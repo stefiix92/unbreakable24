@@ -79,7 +79,7 @@ app.get('/get-location', (req, res) => {
     });
 });
 
-app.get('/start-session', validateApiKey, async(req, res) => {
+app.post('/start-session', validateApiKey, async(req, res) => {
     // Start a new session
     const existingSession = await Session.findOne().sort({ startTime: -1 });
     if (existingSession) {
@@ -93,7 +93,7 @@ app.get('/start-session', validateApiKey, async(req, res) => {
     });
 });
 
-app.get('/end-session', validateApiKey, (req, res) => {
+app.post('/end-session', validateApiKey, (req, res) => {
     // End the current session
     Session.findOne().sort({ startTime: -1 }).then(session => {
         session!.endTime = new Date();
