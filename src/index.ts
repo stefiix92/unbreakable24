@@ -63,9 +63,10 @@ app.post('/update-location', validateApiKey, async (req, res) => {
         const distance = haversine({ latitude: latitude, longitude: longitude }, { latitude: previousLocation.latitude!, longitude: previousLocation.longitude! }) / 1000;
         console.log('Distance:', distance)
         locationModel.distance = distance;
+        currentSession.distance! += distance!;
+        await currentSession.save();
     }
-    currentSession.distance! += locationModel.distance!;
-    await currentSession.save();
+    
     locationModel.save().then(() => {
         res.status(200).send({ message: 'Location updated successfully' });
     }).catch(err => {
