@@ -57,8 +57,8 @@ app.post('/update-location', validateApiKey, async (req, res) => {
     const previousLocation = await Location.findOne().sort({ timestamp: -1 });
     if (previousLocation) {
         const distance = Math.sqrt(
-            Math.pow(latitude - previousLocation.latitude!, 4) +
-            Math.pow(longitude - previousLocation.longitude!, 4)
+            Math.pow(latitude - previousLocation.latitude!, 2) +
+            Math.pow(longitude - previousLocation.longitude!, 2)
         );
         locationModel.distance = distance;
     }
@@ -93,7 +93,7 @@ app.post('/start-session', validateApiKey, async(req, res) => {
     });
 });
 
-app.get('/get-session', validateApiKey, (req, res) => {
+app.get('/get-session', (req, res) => {
     // Get the current session
     Session.findOne().sort({ startTime: -1 }).then(session => {
         res.status(200).send(session);
