@@ -3,6 +3,7 @@ import cors from 'cors';
 import bodyParser from 'body-parser';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import haversine from 'haversine-distance'
 
 dotenv.config();
 
@@ -36,7 +37,8 @@ const locationSchema = new mongoose.Schema({
 
 const sessionSchema = new mongoose.Schema({
     startTime: { type: Date, default: Date.now },
-    endTime: Date
+    endTime: Date,
+    distance: { type: Number, default: 0 }
 });
 
 // Location model
@@ -55,13 +57,15 @@ app.post('/update-location', validateApiKey, async (req, res) => {
     }
     const locationModel = new Location({ latitude, longitude, distance: 0 });
     const previousLocation = await Location.findOne().sort({ timestamp: -1 });
-    if (previousLocation) {
-        const distance = Math.sqrt(
-            Math.pow(latitude - previousLocation.latitude!, 2) +
-            Math.pow(longitude - previousLocation.longitude!, 2)
-        );
+    if (previousLocation !== null) {
+        console.log('Previous Location:', { latitude: previousLocation.latitude, longitude: previousLocation.longitude });
+        console.log('Current Location:', { latitude: latitude, longitude: longitude })
+        const distance = haversine({ latitude: latitude, longitude: longitude }, { latitude: previousLocation.latitude!, longitude: previousLocation.longitude! }) / 1000;
+        console.log('Distance:', distance)
         locationModel.distance = distance;
     }
+    currentSession.distance! += locationModel.distance!;
+    await currentSession.save();
     locationModel.save().then(() => {
         res.status(200).send({ message: 'Location updated successfully' });
     }).catch(err => {
@@ -82,7 +86,7 @@ app.get('/get-location', (req, res) => {
 app.post('/start-session', validateApiKey, async(req, res) => {
     // Start a new session
     const existingSession = await Session.findOne().sort({ startTime: -1 });
-    if (existingSession) {
+    if (existingSession && existingSession.endTime === null) {
         return res.status(400).send({ message: 'An active session already exists' });
     }
     const sessionModel = new Session();
@@ -95,8 +99,12 @@ app.post('/start-session', validateApiKey, async(req, res) => {
 
 app.get('/get-session', (req, res) => {
     // Get the current session
-    Session.findOne().sort({ startTime: -1 }).then(session => {
-        res.status(200).send(session);
+    Session.findOne().sort({ startTime: -1 }).then( async (session) => {
+        if (!session) {
+            return res.status(400).send({ message: 'No active session found' });
+        };
+        
+        res.status(200).send({ startTime: session!.startTime, endTime: session!.endTime, distance: session!.distance });
     }).catch(err => {
         console.log('Error:', err);
     });
@@ -105,6 +113,9 @@ app.get('/get-session', (req, res) => {
 app.post('/end-session', validateApiKey, (req, res) => {
     // End the current session
     Session.findOne().sort({ startTime: -1 }).then(session => {
+        if (!session) {
+            return res.status(400).send({ message: 'No active session found' });
+        }
         session!.endTime = new Date();
         session!.save().then(() => {
             res.status(200).send({ message: 'Session ended successfully' });
